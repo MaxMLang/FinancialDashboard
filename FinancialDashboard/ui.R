@@ -1,6 +1,13 @@
 library(shiny)
 library(shinydashboard)
 library(shinyWidgets)
+library(tidyquant)
+library(tidyverse)
+library(plotly)
+
+
+watchlist <- c("QCOM","NVDA", "TSM", "SRPT", "MSFT", "AAPL", "AMZN")
+
 # Header ----
 header <- dashboardHeader(title = "Financial Dashboard")
 # Sidebar ----
@@ -8,11 +15,8 @@ sidebar <- dashboardSidebar(
     sidebarMenu(
         menuItem("Home", tabName = "home", icon = icon("home")),
         menuItem("Stocks", tabName = "stocks", icon = icon("chart-line")),
-        menuItem("ETFs", tabName = "etfs", icon = icon("chart-pie")),
-        menuItem("Cryptocurrency", tabName = "crypto", icon = icon("bitcoin")),
-        menuItem("Minerals", tabName = "minerals", icon = icon("tint")),
-        menuItem("Currency", tabName = "minerals", icon = icon("dollar-sign"))
-    )
+        menuItem("Cryptocurrency", tabName = "crypto", icon = icon("bitcoin"))
+)
 )
 # Body ----
 body <- dashboardBody(
@@ -29,13 +33,11 @@ body <- dashboardBody(
             tabPanel("Dax", plotlyOutput("dax")),
             tabPanel("Hang Seng", plotlyOutput("hsi"))
         ),
-        ### Most Active Box ----
-        tabBox(
-            title = "Stocks: Most active", 
-            id= "mostactive",
-            selected = "Gainers",
-            tabPanel("Gainers", dataTableOutput("gainers")),
-            tabPanel("Losers", dataTableOutput("losers"))
+        ### Watchlist Box ----
+        box(
+            title = "Watchlist", 
+            id= "watchlist",
+            dataTableOutput("watchlist")
         )
     ),
     fluidRow(
@@ -45,7 +47,7 @@ body <- dashboardBody(
             id= "crypto",
             tabPanel("Bitcoin", plotlyOutput("btc")),
             tabPanel("Ethereum", plotlyOutput("eth")),
-            tabPanel("Bitcoin Catsh", plotlyOutput("bch")),
+            tabPanel("Bitcoin Cash", plotlyOutput("bch")),
             tabPanel("Litecoin", plotlyOutput("ltc")),
             tabPanel("Dogecoin", plotlyOutput("doge"))
         ),
@@ -60,18 +62,36 @@ body <- dashboardBody(
     )
     ),
     tabItem(tabName = "stocks",
-            fluidRow(pickerInput("tickers",label= "Search", choices = pull(dow_tickers), 
-                                 multiple = TRUE, selected = pull(dow_tickers)[4]),
-                     radioButtons("period", label = h4("Period"),
+            fluidRow(infoBoxOutput("dowbox"),
+                     infoBoxOutput("daxbox")),
+            fluidRow(pickerInput("tickers",label= "Search", choices = watchlist, 
+                                 multiple = TRUE, selected = watchlist[2])),
+            fluidRow(radioButtons("period", label = h4("Period"),
                                   choices = list("1 month" = 1, "3 months" = 2, "6 months" = 3, "12 months" = 4, "YTD" = 5), 
-                                  selected = 4)),
-            fluidRow(box("Chart of selected stock(s)",
-                         plotlyOutput("chart")))
+                                  selected = 4, inline=TRUE)),
+            fluidRow(tabBox(title="Charts of selected stocks",
+                            id= "charts",
+                            tabPanel("Chart", plotlyOutput("chart")),
+                            tabPanel("Candlechart", plotOutput("candlechart"))),
+                     box(title = "Monthly returns",
+                            id= "returns",
+                            plotlyOutput("returns")))
             )
+    ,
+    tabItem(tabName = "crypto",
+            fluidRow(tabBox(title="Charts of selected coins",
+                            id= "coincharts",
+                            tabPanel("Chart", plotlyOutput("coinchart")),
+                            tabPanel("Candlechart", plotOutput("coincchart"))))
     )
-)  
-
+    )
+    
+)
+ 
 
 
 
 ui <- dashboardPage(header, sidebar, body)
+
+
+

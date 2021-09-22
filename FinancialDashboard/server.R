@@ -1,14 +1,17 @@
 library(shiny)
+library(shinydashboard)
+library(shinyWidgets)
 library(tidyquant)
 library(tidyverse)
 library(plotly)
 library(DataCombine)
+library(rvest)
 options(warn= -1)
 # Functions ----
 get_yearly_data <- function(ticker){
-    tq_get(ticker, get= "stock.prices", complete_cases = FALSE,
-           from = today()-months(12),
-           to   = today())
+    data <- tq_get(ticker, get= "stock.prices", complete_cases = FALSE)
+    data %>% 
+    filter(date>= today()-months(12))
 }
 
 plot_index_graph <- function(data){
@@ -31,32 +34,59 @@ plot_standard_graph <- function(data, colour){
     )
 }
 
+watchlist <- c("QCOM","NVDA", "TSM", "SRPT", "MSFT", "AAPL", "AMZN")
+dow <- get_yearly_data("^DJI")
+dax <- get_yearly_data("^GDAXI")
+sp500 <- get_yearly_data("^GSPC")
+hsi <- get_yearly_data("^HSI")
 
-server <- function(input, output, session) { 
+dax_open <- dax %>% filter(date== today()) %>% pull(open)
+dax_close <- dax %>% filter(date== today()) %>% pull(close)
+dow_open <- dow %>% filter(date== today()) %>% pull(open)
+dow_close <- dow %>% filter(date== today()) %>% pull(close)
+
+dow <- get_yearly_data("^DJI")
+dax <- get_yearly_data("^GDAXI")
+sp500 <- get_yearly_data("^GSPC")
+hsi <- get_yearly_data("^HSI")
+
+dax_open <- dax %>% filter(date== today()) %>% pull(open)
+dax_close <- dax %>% filter(date== today()) %>% pull(close)
+dow_open <- dow %>% filter(date== today())%>% pull(open)
+dow_close <- dow %>% filter(date== today())%>% pull(close)
+# Watchlists ----
+watchlist <- c("QCOM","NVDA", "TSM", "SRPT", "MSFT", "AAPL", "AMZN")
+watchlist_data <- tq_get(watchlist) %>% 
+    filter(date>= today()-days(1))
+
+# Crypto Data Import ----
+btc <- get_yearly_data("BTC-USD")
+eth <- get_yearly_data("ETH-USD")
+bch <- get_yearly_data("BCH-USD")
+ltc <- get_yearly_data("LTC-USD")
+doge <- get_yearly_data("DOGE-USD")
+
+# Minerals Data Import ----
+gold <- get_yearly_data("GC=F")
+silver <- get_yearly_data("SI=F")
+oil <- get_yearly_data("BZ=F")
+
+server <- function(input, output) { 
     # Home Tab ----
     # Index Data Import ----
     dow <- get_yearly_data("^DJI")
     dax <- get_yearly_data("^GDAXI")
     sp500 <- get_yearly_data("^GSPC")
     hsi <- get_yearly_data("^HSI")
-    # Most active Import and calculations ----
-    dow_tickers <- tq_index("DOW") %>% 
-        dplyr::select("symbol")
     
-    
-    dow_stocks_today <- tq_get(dow_tickers, get= "stock.prices", complete_cases = TRUE,
-                               from= today()- days(1), to= today())
-    
-    dow_stocks_today <- dow_stocks_today %>% 
-        mutate("Change" = 100 * (dow_stocks_today$close - dow_stocks_today$open) /
-                   dow_stocks_today$open)
-    
-    gainers <- dplyr::arrange(dow_stocks_today, desc(Change)) %>% 
-        dplyr::select(symbol, Change) %>% 
-        dplyr::slice(1:10)
-    losers <- dplyr::arrange(dow_stocks_today, Change) %>% 
-        dplyr::select(symbol, Change) %>% 
-        dplyr::slice(1:10)
+    dax_open <- dax %>% filter(date== today()-days(1)) %>% pull(open)
+    dax_close <- dax %>% filter(date== today()-days(1)) %>% pull(close)
+    dow_open <- dow %>% filter(date== today()-days(1)) %>% pull(open)
+    dow_close <- dow %>% filter(date== today()-days(1)) %>% pull(close)
+    # Watchlists ----
+    watchlist <- c("QCOM","NVDA", "TSM", "SRPT", "MSFT", "AAPL", "AMZN")
+    watchlist_data <- tq_get(watchlist) %>% 
+        filter(date>= today()-days(1))
     
     # Crypto Data Import ----
     btc <- get_yearly_data("BTC-USD")
@@ -85,9 +115,9 @@ server <- function(input, output, session) {
     output$hsi <- renderPlotly({
         print(plot_index_graph(hsi))
     })
-    # Most active plots ----
-    output$gainers <- renderDataTable(gainers)
-    output$losers <- renderDataTable(losers)
+    # watchlist ----
+    output$watchlist <- renderDataTable(watchlist_data)
+    
     
     
     # Crypto plots ----
@@ -125,12 +155,22 @@ server <- function(input, output, session) {
     })
     
     # Stocks Tab ----
-    ## Data Import ----
 
     
     observeEvent(c(input$period, input$tickers), {
-                     stock_prices <- tq_get(dow_tickers, get= "stock.prices", complete_cases = TRUE) %>% 
+                     stock_prices <- tq_get(watchlist, get= "stock.prices", complete_cases = TRUE)
+                     stock_prices <- stock_prices %>% 
                          filter(symbol %in% input$tickers)
+                     
+                     crypto_tickers <- c("BTC-USD", "ETH-USD", "ALGO-USD", "BCH-USD", "XLM-USD",
+                                         "BNB-USD", "DOGE-USD")
+                     
+                     crypto_prices <- tq_get(crypto_tickers, 
+                                             get  = "stock.prices",
+                                             from = today()-months(6),
+                                             to   = today(),
+                                             complete_cases = F)
+                     
                      
                      if (input$period == 1) {
                          stock_prices <- stock_prices %>%
@@ -150,28 +190,85 @@ server <- function(input, output, session) {
                                  date >= today()-months(3))
                      }
                      
-                     if (input$period == 5) {
+                     if (input$period == 4) {
                          stock_prices <- stock_prices %>%
-                             filter(year(date) == year(today()))
+                             filter(
+                                 date >= today()-months(12))
+                     }
+                     if (input$period == 5) {
+                         stock_prices <- stock_prices
                      }
                      
                      
                      # Create plot
                      output$chart <- renderPlotly({
-                         print(
-                             ggplotly(stock_prices %>%
-                                          
-                                          ggplot(aes(date, close,colour = symbol)) +
-                                          geom_line(size = 0.4, alpha = .9) +
-                                          labs(colour="Stock")+
-                                          xlab("Time")+
-                                          ylab("Value in $")+
-                                          theme_minimal())
-                         )
+                         print(ggplotly(stock_prices %>%
+                                   ggplot(aes(x = date, y = close)) +
+                                   geom_line()+
+                                   labs(y = "Closing Price", x = "Time") +
+                                   theme_tq()))
+                         
                      })
+                     
+                     output$candlechart <- renderPlot({
+                         print(stock_prices %>% 
+                                   ggplot(aes(x = date, y = close, open = open, high = high, low = low)) +
+                                   geom_candlestick(aes(open = open, high = high, low = low, close = close)) +
+                                   labs(title = "Candlestick Chart", y = "Closing Price", x = "") +
+                                   theme_tq())
+                     })
+                     
+                     output$returns <- renderPlotly({
+                         print(ggplotly(stock_prices %>%
+                                   group_by(symbol) %>%
+                                   tq_transmute(select=adjusted,
+                                                mutate_fun=periodReturn,
+                                                period="monthly",
+                                                col_rename = "monthly_return") %>%
+                                   ggplot(aes(date, monthly_return, color=symbol)) +
+                                   xlab("Time")+
+                                   geom_line()+
+                                   theme_minimal()))
+                     })
+                     
+                    
+                    output$dowbox <- renderInfoBox({
+                        infoBox("Dow Jones", round(dow_close - dow_open,2), 
+                                icon = icon(ifelse(dow_close - dow_open>=0,"arrow-up",
+                                              "arrow-down")),
+                                color = ifelse(dow_close - dow_open>=0,"green", "red"))
+                    })
+                    output$daxbox <- renderInfoBox({
+                        infoBox("DAX", round(dax_close - dax_open,2), icon= icon(ifelse(dax_close - dax_open>=0,"arrow-up",
+                                                                          "arrow-down")),
+                                color = ifelse(dax_close - dax_open>=0,"green", "red"))
+                    })
+                    
+                    
+                    output$coinchart <- renderPlotly({
+                        print(ggplotly( crypto_prices %>%
+                                                    ggplot(aes(date, close,colour = symbol)) +
+                                                    geom_line(size = 0.4, alpha = .9) +
+                                                    labs(colour="Cryptocurrency")+
+                                                    xlab("Time")+
+                                                    ylab("Value in $") +
+                                           theme_tq()))
+                        
+                    })
+                    
+                    output$coincchart <- renderPlot({
+                        print(crypto_prices %>% 
+                                  ggplot(aes(x = date, y = close)) +
+                                  geom_candlestick(aes(open = open, high = high, low = low, close = close)) +
+                                  labs(title = "Candlestick Chart", y = "Closing Price", x = "") +
+                                  theme_tq())
+                    })
+                    
+                    
     }
     )
 }
+
 
 
 
