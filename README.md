@@ -3,3 +3,4 @@ This is a shiny application displaying key indices, stocks, cryptocurrencies and
 
 ### Link to Shiny App
 [Click me](https://maxmlang.shinyapps.io/FinancialDashboard/)
+(Probably takes some time to start the Shiny App as I am a free user.)
