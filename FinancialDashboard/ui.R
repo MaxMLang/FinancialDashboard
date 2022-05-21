@@ -65,7 +65,7 @@ body <- dashboardBody(
             fluidRow(infoBoxOutput("dowbox"),
                      infoBoxOutput("daxbox")),
             fluidRow(pickerInput("tickers",label= "Search", choices = watchlist, 
-                                 multiple = TRUE, selected = watchlist[2])),
+                                 multiple = F, selected = watchlist[2])),
             fluidRow(radioButtons("period", label = h4("Period"),
                                   choices = list("1 month" = 1, "3 months" = 2, "6 months" = 3, "12 months" = 4, "YTD" = 5), 
                                   selected = 4, inline=TRUE)),

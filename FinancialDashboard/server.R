@@ -1,17 +1,18 @@
 library(shiny)
 library(shinydashboard)
 library(shinyWidgets)
+library(quantmod)
 library(tidyquant)
 library(tidyverse)
 library(plotly)
 library(DataCombine)
 library(rvest)
 options(warn= -1)
+
 # Functions ----
 get_yearly_data <- function(ticker){
-    data <- tq_get(ticker, get= "stock.prices", complete_cases = FALSE)
-    data %>% 
-    filter(date>= today()-months(12))
+    data <- tq_get(ticker, get= "stock.prices", complete_cases = TRUE)
+    data %>% filter(date >= today()-months(12))
 }
 
 plot_index_graph <- function(data){
@@ -83,6 +84,7 @@ server <- function(input, output) {
     dax_close <- dax %>% filter(date== today()-days(1)) %>% pull(close)
     dow_open <- dow %>% filter(date== today()-days(1)) %>% pull(open)
     dow_close <- dow %>% filter(date== today()-days(1)) %>% pull(close)
+    
     # Watchlists ----
     watchlist <- c("QCOM","NVDA", "TSM", "SRPT", "MSFT", "AAPL", "AMZN")
     watchlist_data <- tq_get(watchlist) %>% 

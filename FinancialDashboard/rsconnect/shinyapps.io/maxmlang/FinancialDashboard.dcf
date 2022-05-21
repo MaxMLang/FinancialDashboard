@@ -1,0 +1,13 @@
+name: FinancialDashboard
+title: FinancialDashboard
+username:
+account: maxmlang
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4703923
+bundleId: 5060146
+url: https://maxmlang.shinyapps.io/FinancialDashboard/
+when: 1632317507.39375
+lastSyncTime: 1632317507.39377
+asMultiple: FALSE
+asStatic: FALSE
