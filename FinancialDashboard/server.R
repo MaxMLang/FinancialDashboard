@@ -73,7 +73,7 @@ silver <- get_yearly_data("SI=F")
 oil <- get_yearly_data("BZ=F")
 
 server <- function(input, output) { 
-    showNotification("Booting up... Please wait:", type = "message")
+    showNotification("Booting up... Please wait.", type = "message", duration = 30)
     # Home Tab ----
     # Index Data Import ----
     dow <- get_yearly_data("^DJI")
