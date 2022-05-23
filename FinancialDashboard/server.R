@@ -41,20 +41,20 @@ dax <- get_yearly_data("^GDAXI")
 sp500 <- get_yearly_data("^GSPC")
 hsi <- get_yearly_data("^HSI")
 
-dax_open <- dax %>% filter(date== today()) %>% pull(open)
-dax_close <- dax %>% filter(date== today()) %>% pull(close)
-dow_open <- dow %>% filter(date== today()) %>% pull(open)
-dow_close <- dow %>% filter(date== today()) %>% pull(close)
+dax_open <- dax %>% filter(date== max(dax$date)) %>% pull(open)
+dax_close <- dax %>% filter(date== max(dax$date)) %>% pull(close)
+dow_open <- dow %>% filter(date== max(dow$date)) %>% pull(open)
+dow_close <- dow %>% filter(date== max(dow$date)) %>% pull(close)
 
 dow <- get_yearly_data("^DJI")
 dax <- get_yearly_data("^GDAXI")
 sp500 <- get_yearly_data("^GSPC")
 hsi <- get_yearly_data("^HSI")
 
-dax_open <- dax %>% filter(date== today()) %>% pull(open)
-dax_close <- dax %>% filter(date== today()) %>% pull(close)
-dow_open <- dow %>% filter(date== today())%>% pull(open)
-dow_close <- dow %>% filter(date== today())%>% pull(close)
+dax_open <- dax %>% filter(date== max(dax$date)) %>% pull(open)
+dax_close <- dax %>% filter(date== max(dax$date)) %>% pull(close)
+dow_open <- dow %>% filter(date== max(dow$date)) %>% pull(open)
+dow_close <- dow %>% filter(date== max(dow$date)) %>% pull(close)
 # Watchlists ----
 watchlist <- c("QCOM","NVDA", "TSM", "SRPT", "MSFT", "AAPL", "AMZN")
 watchlist_data <- tq_get(watchlist) %>% 
@@ -73,6 +73,7 @@ silver <- get_yearly_data("SI=F")
 oil <- get_yearly_data("BZ=F")
 
 server <- function(input, output) { 
+    showNotification("Booting up... Please wait:", type = "message")
     # Home Tab ----
     # Index Data Import ----
     dow <- get_yearly_data("^DJI")
@@ -80,15 +81,15 @@ server <- function(input, output) {
     sp500 <- get_yearly_data("^GSPC")
     hsi <- get_yearly_data("^HSI")
     
-    dax_open <- dax %>% filter(date== today()-days(1)) %>% pull(open)
-    dax_close <- dax %>% filter(date== today()-days(1)) %>% pull(close)
-    dow_open <- dow %>% filter(date== today()-days(1)) %>% pull(open)
-    dow_close <- dow %>% filter(date== today()-days(1)) %>% pull(close)
+    dax_open <- dax %>% filter(date== max(dax$date)) %>% pull(open)
+    dax_close <- dax %>% filter(date== max(dax$date)) %>% pull(close)
+    dow_open <- dow %>% filter(date== max(dow$date)) %>% pull(open)
+    dow_close <- dow %>% filter(date== max(dow$date)) %>% pull(close)
     
     # Watchlists ----
     watchlist <- c("QCOM","NVDA", "TSM", "SRPT", "MSFT", "AAPL", "AMZN")
     watchlist_data <- tq_get(watchlist) %>% 
-        filter(date>= today()-days(1))
+        filter(date>= max(.$date))
     
     # Crypto Data Import ----
     btc <- get_yearly_data("BTC-USD")

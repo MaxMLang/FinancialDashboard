@@ -5,9 +5,9 @@ account: maxmlang
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4703923
-bundleId: 5060146
+bundleId: 5929735
 url: https://maxmlang.shinyapps.io/FinancialDashboard/
-when: 1632317507.39375
-lastSyncTime: 1632317507.39377
+when: 1653127295.48544
+lastSyncTime: 1653127295.48545
 asMultiple: FALSE
 asStatic: FALSE
