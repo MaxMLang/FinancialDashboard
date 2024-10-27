@@ -12,9 +12,6 @@ FinancialDashboard leverages data from Yahoo Finance to present real-time market
 - **Real-Time Updates:** Integrates data from Yahoo Finance to ensure current and relevant market insights.
 - **Interactive Interface:** Built using Shiny, the app offers an engaging and user-friendly experience.
 
-## Access the App
-
-Experience the power of real-time financial data at your fingertips. Visit the FinancialDashboard here: [Click me](https://maxmlang.shinyapps.io/FinancialDashboard/) (Note: The app may take some time to start as it is hosted on a free server.)
 
 ## Contributions and Feedback
 
